@@ -2,6 +2,7 @@
 
 import d2protdata
 import struct
+from pprint import pprint as print
 
 def unpack_header(s):
     if s == b"\x01":
@@ -28,9 +29,32 @@ def unpack(s, source):
     ptype = unpack_header(s) 
     pformat = d2protdata.protdic[source][ptype[0]][ptype[1]]
     args = pformat["args"]
-    print(args)
+    p = 0
+    pstr = ptype[2]
+    values = []
+    for argtype in [x[0] for x in args]:
+        if argtype == "BYTE":
+            values.append(pstr[p])
+            p += 1
+        elif argtype == "WORD":
+            values.append(struct.unpack("<H", pstr[p:p+2])[0])
+            p += 2
+        elif argtype == "DWORD":
+            values.append(struct.unpack("<I", pstr[p:p+4])[0])
+            p += 4
+        elif argtype == "STRING":
+            str_end = pstr.index(b"\x00", p)
+            values.append(pstr[p:str_end])
+            p = str_end + 1
+        else:
+            break
+    newarg = [[x[0][0], x[1], x[0][1]] for x in zip(args, values)]
+    
+
+    return (ptype, pformat, newarg)
     #for (argtype, isarray, remarks) in args:
 
 if __name__ == "__main__":
-    print(unpack(b"\xff\x25\x08\x00\xf8\xc5\x6f\x79", "C"))
 
+    print(unpack(b"\xff>%\x00\x15\x00\x00\x00\xf0M\xb5t\xe7\xf7\x87kX\xbb\xee\xf8\xbc\xdf\xc3\x8bY\xa3\xb2sStage1st\x00", "C"))
+    print(unpack(b"\x0b\x00\x07lettace\x00", "C"))

@@ -4,7 +4,7 @@ import sys
 import os.path
 import pprint
 import re
-import d2protdata
+from d2protdata import protdic
 
 typeset = set()
 templist = []
@@ -44,6 +44,10 @@ def parseraw(fname):
     elif source == "Sent":
         source = "C"
     remarks = re.sub("<.*?>", "", remarks, re.M|re.S)
+    try:
+        protid = int(protid, 16)
+    except ValueError:
+        return False
     if verbose:
         print("id =", protid)
         print("name =", name)
@@ -52,26 +56,37 @@ def parseraw(fname):
         print("arglist =", arglist)
         print("remarks =", remarks)
         print("-"*20)
+    temparg = []
     for t, v in arglist:
         typeset.add(t)
         if v[:2] == "[]":
             templist.append(fname)
-    return (protid, "".join([token[x[0]] for x in arglist]))
+            temparg.append([t+"[]", v[2:]])
+        else:
+            temparg.append([t,v])
+    arglist = temparg
+    
+    prottype = name.split("_")[0]
+    if source in protdic and \
+            prottype in protdic[source] and \
+            not protid in protdic[source][prottype]:
+        protdic[source][prottype][protid] = {\
+                "id":       protid,\
+                "name":     name.split("_")[1],\
+                "remark":   remarks,\
+                "source":   source,\
+                "type":     prottype,\
+                "args":     arglist
+                }
+
+                
 
 if __name__ == "__main__":
-    f = open("protdata.py", "w")
-    prot_dic = {}
+    
     for fname in sys.argv[1:]:
         prot = parseraw(fname)
-        if not prot:
-            print("died here @ " + fname)
-            quit()
-        prot_type = os.path.basename(fname).split("_")[0]
-        if not prot_type in prot_dic:
-            prot_dic[prot_type]={}
-        prot_dic[prot_type][prot[0]] = prot[1]
-    f.write("prot_dic=\n")
-    f.write(pprint.pformat(prot_dic))
+     
+    open("d2protdata2.py", "w").write("protdic="+pprint.pformat(protdic))
 
 
     print(typeset)

@@ -17,9 +17,12 @@ def init_prot(raw):
         p[4] = p[4].split("\n")
         for argline in p[4][:-1]:
             arg = re.findall(" *\(([A-Z0-9_]*)\) ?(\[[-9]*\])? *(.*?)\.?\*{0,2}\ *$", argline)
-
+            
             if arg:
-                temp.append(arg[0])
+                argtemp = list(arg[0])
+                argtemp[0] += argtemp[1]
+                argtemp.pop(1)
+                temp.append(argtemp)
         p[4] = temp
         p = dict(zip(labels, p))
         if not p["source"] in prot_dic:
@@ -32,5 +35,5 @@ def init_prot(raw):
 
 if __name__ == "__main__":
     results = init_prot(open(sys.argv[1]).read())
-    open("protdata.py", "w").write(pprint.pformat(results))
+    open("../d2protdata.py", "w").write("protdic=" + pprint.pformat(results))
     print(len(results))
