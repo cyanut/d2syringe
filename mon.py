@@ -4,6 +4,8 @@ import socket, threading
 from select import select
 import time
 import d2prot
+import sys
+import traceback
 from pprint import pprint
 SRV_ADDR = "202.104.1.89"
 BN_PORT = 6112
@@ -51,8 +53,12 @@ def manage_conn(cli, srv):
                     source = "S"
                 print(symbol.encode("utf-8") + msg)
                 try:
-                    pprint(d2prot.unpack(msg, source))
+                    msgdic = d2prot.unpack(msg, source)
+                    if msgdic[0][1] != 143 and msgdic[0][1] != 109:
+                        pprint(msgdic)
                 except BaseException as e:
+                    exc_type, exc_val, exc_tb = sys.exc_info()
+                    traceback.print_tb(exc_tb)
                     print(repr(e))
                 print("-"*10)
             else:

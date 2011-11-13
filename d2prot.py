@@ -123,9 +123,9 @@ def decompress(s):
         c = character_table[index + 2 * d + 2]
         count += c
         if (count > 0x20):
-            return "".join(res)
+            return bytearray(res)
         a = character_table[index + 2 * d + 1]
-        res.append(chr(a))
+        res.append(a)
         b <<= (c & 0xFF)
         b &= 0xFFFFFFFF
 
@@ -143,8 +143,8 @@ def unpack_header(s):
     
     if header_byte == len(s):
         sdecomp = decompress(s[1:])
-        print("\\x"+"\\x".join([hex(ord(x))[2:] for x in sdecomp]))
-        return("D2GS",ord(sdecomp[0]),sdecomp[1:])
+        print("\\x"+"\\x".join([hex(x)[2:] for x in sdecomp]))
+        return("D2GS",sdecomp[0],sdecomp[1:])
 
     if header_byte == 0xFF and len(s) >= 4:
         if struct.unpack("<H", s[2:4])[0] == len(s):
