@@ -3,6 +3,8 @@
 import socket, threading
 from select import select
 import time
+import d2prot
+from pprint import pprint
 SRV_ADDR = "202.104.1.89"
 BN_PORT = 6112
 BN2_PORT = 6113
@@ -37,14 +39,21 @@ def manage_conn(cli, srv):
             if rs == cli:
                 target = srv
                 symbol = str(rs.getsockname()[1])+"==> "
-                msg.replace
                 msg = msg.replace(b"\x7f\x00\x00\x01",b"\xca\x68\x01\x59") 
             elif rs == srv:
                 symbol = "<== " + repr(rs.getpeername()) 
                 target = cli
                 msg = msg.replace(b"\xca\x68\x01\x59", b"\x7f\x00\x00\x01")
             if msg:
-                print(symbol.encode("UTF-8") + msg)
+                if rs == cli:
+                    source = "C"
+                else:
+                    source = "S"
+                print(symbol.encode("utf-8") + msg)
+                try:
+                    pprint(d2prot.unpack(msg, source))
+                except BaseException as e:
+                    print(repr(e))
                 print("-"*10)
             else:
                 live = False
